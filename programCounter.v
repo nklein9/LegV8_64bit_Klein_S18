@@ -1,10 +1,10 @@
 //Nicholas Klein
-//Last Edit Feb 26, 2018
+//Last Edit March 26, 2018
 module programCounter(PC, PC4, PS, in, reset, clock);
 	output [63:0]PC;
 	output [63:0]PC4;
 	input [1:0]PS;
-	input [64:0]in;
+	input [63:0]in;
 	input reset;
 	input clock;
 
