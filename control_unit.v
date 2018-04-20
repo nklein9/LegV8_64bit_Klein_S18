@@ -1,129 +1,23 @@
-/*`define cw_bits 96;
-module control_unit(i, status, reset, clock, control_word, literal);
-	input [31:0]i; // instruction
-	input [4:0] status; // from ALU (through register)
-	input reset, clock;
-	output [`cw_bits-1:0]control_word;
-	output [63:0]literal;
-	
-	wire[10:0]opcode;
-	reg state;
-	
-	assign opcode = i[31:21];
-	
-	//partial control words
-	wire [`cw_bits:0] branch_cw, other_cw; // there is an extra control word bit that is 
-	wire [`cw_bits:0] D_format_cw, I_arithmetic_cw, I_logic_cw, IW_cw, R_ALU_cw;
-	wire [`cw_bits:0] B_cw, B_cond_cw, BL_cw, CBZ_cw, BR_cw;
-	
-	// partial control unit decoders
-	//d_decoder dec0_00
-	
-	// state logic
-	wire NS; // next statereg state;
-	always @(posedge clock or posedge reset)
-	begin
-		if(reset)
-			state <= 1'b0;
-		else
-			state <= NS;		
-	end
-
-	
-
-endmodule
-
-module IW_decoder (I, state, control_word);
-	input[31:0]I;
-	input state;
-	output [`cw_bits:0]control_word;
-	
-	// wire for all control signals
-	wire [4:0] DA, SA, SB;
-	wire [63:0]K;
-	wire [1:0]PS;
-	wire [4:0]FS;
-	wire PC_sel, B_sel, SL, EN_ALU, EN_RAM, EN_PC, WM, WR, NS;
-	
-	// easy stuff first
-	assign DA = I[4:0];
-	assign SB = 5'b0;
-	assign B_sel = 1'b1;
-	assign SL = 1'b0;
-	assign EN_ALU = 1'b1;
-	assign EN_RAM = 1'b0;
-	assign EN_PC = 1'b0;
-	assign WM = 1'b0;
-	assign WR = 1'b1;
-	
-	// hard ones
-	wire I_29_Snot;
-	assign I29_Snot = I[29] & ~state;
-	assign SA = I[29] ? I[4:0] : 5'd31;
-	assign K = I29_Snot ? 64'hFFFFFFFFFFFF0000 : {48'b0, I[20:5]};
-	assign PS = {1'b0, ~I29_Snot};
-	assign FS = {2'b00, ~I29Snot, 2'b00};
-	assign NS = {I29_Snot};
-		
-	assign control_word = {NS, K, EN_PC, EN_RAM, EN_ALU, PC_sel, B_sel, SL, WM, WR, FS, SB, SA, DA};
-endmodule
-
-module _B_cond_decoder (IR, state, control_word);
-	input [31:0]I;
-	input [3:0]status;
-	output [`cw_bits:0] control_word;
-	
-	// wire for all control signals
-	wire [4:0] DA, SA, SB;
-	wire [63:0] K;
-	wire [1:0]PS;
-	wire [4:0]FS;
-	wire PC_sel, B_sel, SL, EN_ALU, EN_RAM, EN_PC, WM, WR, NS;
-	
-	wire Z, N, C, V;
-	assign {V, C, N, Z} = status;
-	
-	// easy stuff first
-	assign DA = 5'b0;
-	assign SA = 5'b0;
-	assign SB = 5'b0;
-//	assign K = {45{I[23]}, I[23:5]};
-	assign FS = 5'b0;
-	assign PC_sel = 1'b1;
-	assign B_sel = 1'b0;
-	assign SL = 1'b0;
-	assign EN_ALU = 1'b0;
-	assign EN_RAM = 1'b0;
-	assign EN_PC = 1'b0;
-	assign WM = 1'b0;
-	assign WR = 1'b0;
-	assign NS = 1'b0;
-	
-	assign PS[0] = 1'b1;
-	wire PCmux_out;
-	Mux8to1Nbit PC1mux (PCmux_out, I[3:1], Z, C, N, Z, Zn_C, N_xnor_V, N_xnorV_Zn, ~I0);
-	defparam PC1mux.N = 1;
-	assign PS[1] = PCmux_out ^ I[0];
-	
-	assign control_word = {NS, K, EN_PC, EN_RAM, EN_ALU, PC_sel, B_sel, SL, WM, WR, FS, SB, SA, DA};
-endmodule
-	
-module R_ALU_decoder (I, control_word_);
-	input [31:0]I;
-//	ouptut [`cw_bits:0- control_word];
-	// wire for all control signals
-//	wire [4:0]
-	
-	// hard ones
-	assign SL = ~I[24] & I[30] & I[29] | I[24] & ~I[22] & I[29];
-	assign FS[0] = I[24] & ~I[22] & I[30];
-	assign FS[1] = 1'b0;
-//	assign FS[2] = ~I[24] & (I[30 ^ I[29]) | (I[24] & I[22] & ~I[21]);
-	//assign FS[3] = 
-	
-endmodule
-*/
 module control_unit(i, z, status, clock, reset, ControlWord, K);
+/*
+	Created by David Russo
+	Last edited 4/20/2018
+	
+	The Control Unit:
+	- Receives a 32-bit instruction from the ROM
+	- Decodes the instructions
+	- Uses a series of multiplexors to select which format instruction to execute
+	- Generates a 29-bit Control Word and a 64-bit constant
+	- Outputs the constant (k) and control word (ControlWord) to the Datapath
+	
+	This Control Unit has 5 main modules inside it:
+	1. Register File
+	2. Arithmetic Logic Unit (ALU)
+	3. Random Access Memory (RAM)
+	4. Program Counter (PC)
+	5. Read-Only Memory (ROM)
+*/
+
 	// inputs and outputs
 	input [31:0]i; // 32 bit instruction
 	input z; // 1 bit zero status signal for CBZ_CBNZ
@@ -132,8 +26,8 @@ module control_unit(i, z, status, clock, reset, ControlWord, K);
 	input reset;
 	output [63:0]K;
 	output [28:0]ControlWord;
-		/* CW Values
 		
+		/* CW Values
 		[4:0] = DA
 		[9:5] = SA
 		[14:10] = SB
@@ -170,40 +64,41 @@ module control_unit(i, z, status, clock, reset, ControlWord, K);
 		[28] = status_load
 		[92:29] = k
 		[93] = state
-		
 		*/
-	
 	
 	// wires
 	wire [93:0]cw_D, cw_I_arith, cw_I_logic, cw_IW, cw_R_ALU, cw_B, cw_B_cond, cw_BL, cw_CBZ_CBNZ, cw_BR, cw_ALU, cw_branch, CW; // control words
+	wire [93:0]cw_RI_Logic; // control word from the new RI_Logic Module
 	wire state, p_state; // state bits for MOVK
 	wire [10:0]Op; // assumes a general 11-bit Op code to use for mux selects
-		assign Op = i[31:21];
+		assign Op[10:0] = i[31:21];
 	
 	// define paramemters
 	defparam state_reg.N = 1;
+	defparam mux_cw_ALU.N = 94;
+	defparam mux_cw_branch.N = 94;
 
 	// instruction decoder instantiations
-	D D(i, cw_D);
-	I_arith I_arith(i, cw_I_arith);
-	I_logic I_logic(i, cw_I_logic);
-	IW IW(i, p_state, cw_IW);
-	R_ALU R_ALU(i, cw_R_ALU);
-	B B(i, cw_B);
-	B_cond B_cond(i, status, cw_B_cond);
-	BL BL(i, cw_BL);
-	CBZ_CBNZ CBZ_CBNZ(i, z, cw_CBZ_CBNZ);
-	BR BR(i, cw_BR);
+	D D_dec(i, cw_D);
+	I_arith I_arith_dec(i, cw_I_arith);
+	//I_logic I_logic_dec(i, cw_I_logic);
+	RI_Logic RI_Logic_dec(i, cw_RI_Logic);
+	IW IW_dec(i, p_state, cw_IW);
+	R_ALU R_ALU_dec(i, cw_R_ALU);
+	B B_dec(i, cw_B);
+	B_cond B_cond_dec(i, status, cw_B_cond);
+	BL BL_dec(i, cw_BL);
+	CBZ_CBNZ CBZ_CBNZ_dec(i, z, cw_CBZ_CBNZ);
+	BR BR_dec(i, cw_BR);
 	
 	// Mux logic
-	Mux8to1Nbit mux_cw_ALU(cw_ALU, Op[4:2], cw_D, 94'b0, cw_I_arith, 94'b0, cw_I_logic, cw_IW, cw_R_ALU, 94'b0);
+	Mux8to1Nbit mux_cw_ALU(cw_ALU, Op[4:2], cw_D, 94'b0, cw_I_arith, 94'b0, cw_RI_Logic, cw_IW, cw_R_ALU, 94'b0);
 	Mux8to1Nbit mux_cw_branch(cw_branch, Op[10:8], cw_B, 94'b0, cw_B_cond, 94'b0, cw_BL, cw_CBZ_CBNZ, cw_BR, 94'b0);
 	assign CW = Op[5] ? cw_branch : cw_ALU;
 	assign state = CW[93];
 	assign K = CW[92:29];
-	assign ControlWord = i[28:0];
+	assign ControlWord = CW[28:0];
 	RegisterNbit state_reg(p_state, state, 1'b1, reset, clock);
-
 
 endmodule
 
@@ -242,7 +137,7 @@ module I_arith(i, CW);
 	
 endmodule
 
-module I_logic(i, CW);
+module I_logic(i, CW); // Not used anymore
 	//inputs and outputs
 	input [31:0]i;    // 32 bit instructions from the ROM
 	output [93:0]CW;  // 94 bit control word including k and the next state bit
@@ -279,6 +174,44 @@ module I_logic(i, CW);
 	
 endmodule
 
+module RI_Logic(i, CW);
+	//inputs and outputs
+	input [31:0]i;    // 32 bit instructions from the ROM
+	output [93:0]CW;  // 94 bit control word including k and the next state bit
+	
+	// wires
+	wire [10:0]Op; // 10 bit opcode 
+		assign Op[10:0] = i[31:21];
+	wire [4:0]DA, SA, SB, FS;
+	wire [1:0]PS, enable;
+	wire regWrite, memWrite, PC_sel, B_sel, status_load;
+	wire [63:0]k;
+	wire state;
+	
+	// assign statements
+	assign DA = i[4:0];
+	assign SA = i[9:5];
+	assign SB = i[20:16];
+	assign FS[4] = 1'b0;
+	assign FS[3] = Op[9] & ~Op[8];
+	assign FS[2] = Op[9] ^ Op[8];
+	assign FS[1:0] = 2'b00;
+	assign PS = 2'b01; // PC <= PC + 4
+	assign enable = 2'b00; // enable ALU_out onto the databus
+	assign regWrite = 1'b1;
+	assign memWrite = 1'b0;
+	assign PC_sel = 1'b0; // don't care
+	assign B_sel = Op[6]; // selects k instead of b
+	assign status_load = Op[9] & Op[8];
+	assign k = i[6] ? {58'b0, i[15:10]} : {52'b0, i[21:10]};
+	assign state = 1'b0;
+	
+	//concatenation
+	assign CW = {state, k, status_load, B_sel, PC_sel, memWrite, regWrite, enable, PS, FS, SB, SA, DA};
+	
+endmodule
+
+
 module R_ALU(i, CW);
 	//inputs and outputs
 	input [31:0]i;    // 32 bit instructions from the ROM
@@ -298,10 +231,10 @@ module R_ALU(i, CW);
 	assign SA = i[9:5];
 	assign SB = i[20:16];
 	assign FS[4] = Op[1];
-	assign FS[3] = (Op[3] & ~Op[1]) | (~Op[3] & Op[9] & ~Op[8]);
-	assign FS[2] = ((Op[9] ^ Op[8]) & ~Op[3]) | (Op[1] & ~Op[0]);
+	assign FS[3] = Op[6];
+	assign FS[2] = Op[1] & ~Op[0];
 	assign FS[1] = 1'b0;
-	assign FS[0] = Op[9] & Op[3] & ~Op[1];
+	assign FS[0] = Op[9] & Op[6];
 	assign PS = 2'b01; // PC <= PC + 4
 	assign enable = 2'b00; // enable ALU_out onto the databus
 	assign regWrite = 1'b1;
