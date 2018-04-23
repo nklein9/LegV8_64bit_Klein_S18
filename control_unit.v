@@ -307,7 +307,7 @@ module IW(i, p_state, CW);
 	assign SA = 5'b11111;
 	assign SB = 5'b11111;
 	assign FS[4:3] = 2'b00;
-	assign FS[2] = p_state;
+	assign FS[2] = p_state & Op[6] | ~Op[6];
 	assign FS[1:0] = 2'b00;
 	assign PS[1] = 1'b0;
 	assign PS[0] = ~Op[6] | (Op[6] & p_state);
@@ -465,17 +465,17 @@ module CBZ_CBNZ(i, z, CW);
 	wire state;
 	
 	// assign statements
-	assign DA = 5'b00000; // don't care
-	assign SA = 5'b11111; // don't care
-	assign SB = 5'b11111; // don't care
-	assign FS = 5'b00000; // don't care
-	assign PS[1] = 1'b1;
-	assign PS[0] = Op[0] ^ z;
+	assign DA = 5'b11111; // don't care
+	assign SA = i[4:0]; // comparing if this register is zero
+	assign SB = 5'b11111; // adding XZR
+	assign FS = 5'b01000; // ADD
+	assign PS[0] = 1'b1;
+	assign PS[1] = Op[0] ^ z;
 	assign enable = 2'b10; // enable PC4 onto the databus
 	assign regWrite = 1'b0;
 	assign memWrite = 1'b0;
-	assign PC_sel = 1'b1; // selects a to go to PC in
-	assign B_sel = 1'b0; // don't care
+	assign PC_sel = 1'b0; // selects k to go to PC in
+	assign B_sel = 1'b1; // b goes into ALU
 	assign status_load = 1'b0; // don't care
 	assign k = i[23] ? {44'hFFFF_FFFF_FFF, 1'b1, i[23:5]} : {44'h0000_0000_000, 1'b0, i[23:5]}; // sign extended
 	assign state = 1'b0;
