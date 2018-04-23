@@ -1,21 +1,11 @@
-//Nicholas Klein
-//Last Edit Feb 19, 2018
-module Mux8to1Nbit (I0, I1, I2, I3, I4, I5, I6, I7, S, F);
-	parameter N = 64;
-	input [N-1:0] I0, I1, I2, I3, I4, I5, I6, I7;
-	input [2:0] S; //select
-			/*
-			000 and
-			001 or
-			010 add
-			011 XOR
-			100 shift left
-			101 shift right
-			110 not used
-			111 not used
-			*/
-	output [N-1:0] F;
-	
-assign F = S[2] ? (S[1] ? (S[0] ? I7 : I6) : (S[0] ? I5 : I4)) : (S[1] ? (S[0] ? I3 : I2) : (S[0] ? I1 : I0));
+module Mux8to1Nbit(F, S, i0, i1, i2, i3, i4, i5, i6, i7);
 
+	parameter N = 8; // Default Parameter but can be overridden by defparam during instantiation
+	
+	//inputs and outputs
+	output [N-1:0]F;
+	input [N-1:0]i0, i1, i2, i3, i4, i5, i6, i7;
+	input [2:0]S; // Select
+	
+	assign F = S[2] ? (S[1] ? (S[0] ? i7 : i6) : (S[0] ? i5 : i4)) : (S[1] ? (S[0] ? i3 : i2) : (S[0] ? i1 : i0));
 endmodule
