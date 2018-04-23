@@ -1,19 +1,21 @@
-module ProgramCounter(PC, PC4, PS, in, reset, clock);
-	output [63:0]PC;
-	output [63:0]PC4;
-	input [1:0]PS;
+module ProgramCounter(in, PS, reset, clock, PC, PC4);
+	// I/O
 	input [63:0]in;
-	input reset;
-	input clock;
-//addout = 11, in = 01, PC4 = 10, regOut = 00
-//RegisterNbit (Q, D, load, reset, clock);
-	wire [63:0] addOut, muxOut, regOut;
+	input [1:0]PS;
+	input clock, reset;
+	output [63:0]PC, PC4;
 	
-	RegisterNbit reg_inst (regOut, muxOut, 1'b1, reset, clock);
+	//wires
+	wire [63:0]in2, in3, PC_mux_out;
+	wire Cout_0, Cout_1;
 	
-	assign PC4 = PC + 3'd4;
-	assign addOut = {in[61:0], 2'b00} + PC4;
-	assign muxOut = PS[0] ? (PS[1] ? addOut : in) : (PS[1] ? PC4 : regOut);
-	assign PC = regOut;
+	//Logic
+	assign in2 = in << 2;
+	assign PC_mux_out = PS[1] ? (PS[0] ? in3 : in) : (PS[0] ? PC4 : PC);
+	
+	//instantiations
+	RippleCarryAdder PC_RCA_0(PC, 64'd4, 1'd0, PC4, Cout_0);
+	RippleCarryAdder PC_RCA_1(PC4, in2, 1'b0, in3, Cout_1);
+	RegisterNbit PC_reg(PC, PC_mux_out, 1'b1, reset, clock);
 	
 endmodule
