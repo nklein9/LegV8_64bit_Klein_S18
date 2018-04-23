@@ -1,5 +1,5 @@
 //Nicholas Klein
-//Last Edit March 26, 2018
+//Last Edit April 21, 2018
 module programCounter2_Testbench ();
 	wire [63:0] PC;
 	wire [63:0] PC4;
@@ -17,10 +17,9 @@ module programCounter2_Testbench ();
 	assign regOut = dut.regOut;
 	assign dutin = dut.in;
 	
-	
 	initial begin
 		PS <= 2'b00;
-		in <= {$random, $random};
+		in <= {32'b0, $random};
 		reset <= 1'b1;
 		clock <= 1'b0;
 		#10

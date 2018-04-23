@@ -14,7 +14,11 @@ module programCounter2(PC, PC4, PS, in, reset, clock);
 	
 	assign PC4 = PC + 3'd4;
 	assign addOut = {in[61:0], 2'b00} + PC4;
-	assign muxOut = PS[0] ? (PS[1] ? addOut : in) : (PS[1] ? PC4 : regOut);
+	assign muxOut = PS[1] ? (PS[0] ? addOut : in) : (PS[0] ? PC4 : regOut);
+		//00: PC<=PC
+		//01: PC<=PC4
+		//10: PC<=in
+		//11: PC<=PC4+in*4
 	assign PC = regOut;
 	
 endmodule
