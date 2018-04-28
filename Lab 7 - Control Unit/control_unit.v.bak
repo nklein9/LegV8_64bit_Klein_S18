@@ -1,0 +1,30 @@
+module control_unit(instruction, status, reset, clock, control_word, literal);
+	parameter cw_bits = 32;
+	input [31:0]instruction;
+	input [4:0] status; // 
+	input reset, clock;
+	ouptut [cw_bits-1:0]control_word;
+	output [63:0]literal;
+	
+	wire[10:0]opcode;
+	
+	assign opcode = instruction[31:21];
+	
+	//partial control words
+	wire [cw_bits:0] branch_cw, other_cw; // there is an extra control word bit that is 
+	wire [cw_bits:0] D_format_cw, I_arithmetic_cw, I_logic_cw, IW_cw, R_ALU_cw;
+	wire [cw_bits:0] B_cw, B_cond_cw, BL_cw, CBZ_cw, BR_cw;
+	
+	// partial control unit decoders
+	d_decoder dec0_00
+	
+	// state logic
+	wire NS; // next statereg state;
+	always @(posedge clock or posedge reset)
+	begin
+		if(reset)
+			state <= 1'b0;
+		else
+			state <= NS;		
+	end
+	

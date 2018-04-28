@@ -1,4 +1,4 @@
-module Datapath(cw, k, reset, data_in, clock, Databus, Status, Zero, I, Write);
+module Datapath(cw, k, reset, data_in, clock, Databus, Status, Zero, I, Write, R0, R1, R2, R3, R4, R5, R6, R7, PC_out);
 /*
 	Created by David Russo
 	Last edited 4/24/2018
@@ -25,6 +25,7 @@ module Datapath(cw, k, reset, data_in, clock, Databus, Status, Zero, I, Write);
 	output [31:0]I; // ROM instructions
 	output Zero; // Immediate zero bit for CBZ/CBNZ
 	output Write; // Write to memory output to peripherals
+	output [15:0]R0, R1, R2, R3, R4, R5, R6, R7, PC_out;
 	
 	/* 
 	cw values
@@ -85,19 +86,22 @@ module Datapath(cw, k, reset, data_in, clock, Databus, Status, Zero, I, Write);
 	assign a2 = PC_sel ? a : k; // if PC_sel is 0: then k, if PC_sel is 1: then a
 	assign Zero = status_ALU[1];
 	assign memWrite2 = RAM_det_out & memWrite;
+	assign PC_out = PC[15:0]; // for GPIO matrix display
 	
 	// define parameters
 	defparam status_reg.N = 4;
 	
 	//Instantiations
 	ALU_rev2 ALU_inst(a, b2, FS, ALU_out, status_ALU);
-	RegisterFile RegisterFile_inst(a, b, Databus, DA, SA, SB, regWrite, reset, clock); // 32x64
+	RegisterFile RegisterFile_inst(a, b, R0, R1, R2, R3, R4, R5, R6, R7, Databus, DA, SA, SB, regWrite, reset, clock); // 32x64
 	RAM_det RAM_det_inst(ALU_out[31:0], RAM_det_out);
 	RAM256x64 RAM_inst(ALU_out[7:0], clock, Databus, memWrite2, RAM_out);
 	RegisterNbit status_reg(Status, status_ALU, status_load, reset, clock);
 	ProgramCounter PC_inst(a2, PS, reset, clock, PC, PC4);
 	//rom_case ROM_inst(I, PC); // ROM from class
-	Muhlbaiers_rom_case ROM_inst1(I, PC[15:0]);
+	//Muhlbaiers_rom_case ROM_inst1(I, PC[15:0]);
+	rom_case_nice ROM_inst2(I, PC[15:0]);
+
 	
 	assign RAM_mux_out = RAM_det_out ? RAM_out : data_in;
 	assign Databus = enable[1] ? (enable[0] ? b : PC4) : (enable[0] ? RAM_mux_out : ALU_out);

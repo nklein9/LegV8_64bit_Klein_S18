@@ -1,0 +1,13 @@
+Warning (10273): Verilog HDL warning at GPIO_Board.v(120): extended using "x" or "z"
+Info (10281): Verilog HDL Declaration information at Leg_v8Microprocessor.v(8): object "HEX0" differs only in case from object "hex0" in the same scope
+Info (10281): Verilog HDL Declaration information at Leg_v8Microprocessor.v(8): object "HEX1" differs only in case from object "hex1" in the same scope
+Info (10281): Verilog HDL Declaration information at Leg_v8Microprocessor.v(8): object "HEX2" differs only in case from object "hex2" in the same scope
+Info (10281): Verilog HDL Declaration information at Leg_v8Microprocessor.v(8): object "HEX3" differs only in case from object "hex3" in the same scope
+Info (10281): Verilog HDL Declaration information at Leg_v8Microprocessor.v(7): object "BUTTON" differs only in case from object "button" in the same scope
+Warning (10268): Verilog HDL information at B_cond_testbench.v(76): always construct contains both blocking and non-blocking assignments
+Warning (10268): Verilog HDL information at control_unit_Testbench.v(83): always construct contains both blocking and non-blocking assignments
+Info (10281): Verilog HDL Declaration information at DE0_Test.v(3): object "BUTTON" differs only in case from object "button" in the same scope
+Info (10281): Verilog HDL Declaration information at DE0_Test.v(4): object "HEX0" differs only in case from object "hex0" in the same scope
+Info (10281): Verilog HDL Declaration information at DE0_Test.v(4): object "HEX1" differs only in case from object "hex1" in the same scope
+Info (10281): Verilog HDL Declaration information at DE0_Test.v(4): object "HEX2" differs only in case from object "hex2" in the same scope
+Info (10281): Verilog HDL Declaration information at DE0_Test.v(4): object "HEX3" differs only in case from object "hex3" in the same scope

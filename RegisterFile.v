@@ -1,10 +1,11 @@
-module RegisterFile(A, B, D, DA, SA, SB, write, reset, clock); // 32x64
+module RegisterFile(A, B, R0, R1, R2, R3, R4, R5, R6, R7, D, DA, SA, SB, write, reset, clock); // 32x64
 	
 	/*
 	
 	*/
 	//inputs and outputs
 	output [63:0]A, B; // output buses
+	output [15:0]R0, R1, R2, R3, R4, R5, R6, R7; // Outputs to GPIO Matrix Display
 	input [63:0]D; // data input
 	input [4:0]DA; //destination data address
 	input [4:0]SA; // selelect address for A bus
@@ -16,7 +17,14 @@ module RegisterFile(A, B, D, DA, SA, SB, write, reset, clock); // 32x64
 					R10, R11, R12, R13, R14, R15, R16, R17, R18, R19,
 					R20, R21, R22, R23, R24, R25, R26, R27, R28, R29,
 					R30, R31;
-					
+			assign R0 = R00[15:0];
+			assign R1 = R01[15:0];
+			assign R2 = R02[15:0];
+			assign R3 = R03[15:0];
+			assign R4 = R04[15:0];
+			assign R5 = R05[15:0];
+			assign R6 = R06[15:0];
+			assign R7 = R07[15:0];
 	wire [31:0]L; // Bus of Load wires (register 31 = 64'b0)
 	
 	// define registers. they have instance names: reg0, reg1...

@@ -1,5 +1,5 @@
 // auto generated from http://users.rowan.edu/~haskellt8/assembler/
-module rom_case(out, address);
+module rom_case_nice(out, address);
 	output reg [31:0] out;
 	input  [15:0] address; // address- 16 deep memory  
 	always @(address) begin
@@ -8,7 +8,8 @@ module rom_case(out, address);
 			16'h0000:  out = 32'b11010010100000000000000000100111; // MOVZ X7, 1
 			// change the shift amount to change the delay
 			// if using a testbench to debug then change the shift amoun to 1
-			16'h0001:  out = 32'b1101001101100000_011000_0011100111; // LSL X7, X7, 24
+		   16'h0001:  out = 32'b1101001101100000_000001_0011100111; // LSL X7, X7, 1
+		//	16'h0001:  out = 32'b1101001101100000_011000_0011100111; // LSL X7, X7, 24
 			16'h0002:  out = 32'b11111000000000110000001111100111; // STUR X7, [XZR, 48]
 			16'h0003:  out = 32'b11010001000001100101011111100000; // SUBI X0, XZR, 405
 			16'h0004:  out = 32'b11010001000100000000001111100101; // SUBI X5, XZR, 1024
