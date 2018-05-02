@@ -1,4 +1,4 @@
-module CPU(data_in, clock, reset, Databus, Write, R0, R1, R2, R3, R4, R5, R6, R7, PC_out, i);
+module CPU(data_in, clock, reset, Databus, address, Read, Write, i, PC, R0, R1, R2, R3, R4, R5, R6, R7);
 	/*
 		Created by David Russo
 		Last Edited 4/24/18
@@ -15,19 +15,18 @@ module CPU(data_in, clock, reset, Databus, Write, R0, R1, R2, R3, R4, R5, R6, R7
 	input [63:0]data_in; // from peripherals
 	input clock, reset;
 	output [63:0]Databus;
-	output Write;
-	output [15:0]R0, R1, R2, R3, R4, R5, R6, R7, PC_out;
-	output [31:0]i;
+	output [31:0] address, i, PC;
+	output Write, Read;
+	output [15:0] R0, R1, R2, R3, R4, R5, R6, R7;
 	
 	// wires
 	wire [28:0]cw;
 	wire [63:0]k;
-	//wire [31:0]i;
 	wire [3:0]status;
 	wire z;
 	
 	// instantiations
-	Datapath Datapath_inst(cw, k, reset, data_in, clock, Databus, status, z, i, Write, R0, R1, R2, R3, R4, R5, R6, R7, PC_out);
+	Datapath Datapath_inst(cw, k, reset, data_in, clock, Databus, status, zero, i, address, Write, PC, R0, R1, R2, R3, R4, R5, R6, R7);
 	control_unit CU_inst(i, z, status, clock, reset, cw, k);
 
 endmodule

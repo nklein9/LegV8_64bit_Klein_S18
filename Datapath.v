@@ -1,7 +1,7 @@
-module Datapath(cw, k, reset, data_in, clock, Databus, Status, Zero, I, Write, R0, R1, R2, R3, R4, R5, R6, R7, PC_out);
+module Datapath(cw, k, reset, data_in, clock, Databus, Status, Zero, I, address, Write, PC, R0, R1, R2, R3, R4, R5, R6, R7);
 /*
 	Created by David Russo
-	Last edited 4/24/2018
+	Last edited 4/28/2018 by Nick Klein
 	
 	This Datapath has 5 main modules inside it:
 	1. Register File
@@ -20,12 +20,12 @@ module Datapath(cw, k, reset, data_in, clock, Databus, Status, Zero, I, Write, R
 	input reset; // resets the register file
 	input clock; // clock for the register file and the RAM
 	
-	output [63:0]Databus; // Outputs to the program counter
+	output [63:0]Databus, PC; // Outputs to the program counter, Program Counter
 	output [3:0]Status;//Status = {Overflow, Carry, Zero, Negative}, status outputs to the control unit
-	output [31:0]I; // ROM instructions
+	output [31:0]I, address; // ROM instructions
 	output Zero; // Immediate zero bit for CBZ/CBNZ
 	output Write; // Write to memory output to peripherals
-	output [15:0]R0, R1, R2, R3, R4, R5, R6, R7, PC_out;
+	output [15:0] R0, R1, R2, R3, R4, R5, R6, R7; //needed for peripherals
 	
 	/* 
 	cw values
@@ -81,12 +81,13 @@ module Datapath(cw, k, reset, data_in, clock, Databus, Status, Zero, I, Write, R
 	// decode control word
 	assign {status_load, B_sel, PC_sel, memWrite, regWrite, enable, PS, FS, SB, SA, DA} = cw;
 	
+	assign address = ALU_out[31:0];
+	
 	//assign other internal wires
 	assign b2 = B_sel ? b : k; // if B_sel is 0: then k, if B_sel is 1: then b
 	assign a2 = PC_sel ? a : k; // if PC_sel is 0: then k, if PC_sel is 1: then a
 	assign Zero = status_ALU[1];
 	assign memWrite2 = RAM_det_out & memWrite;
-	assign PC_out = PC[15:0]; // for GPIO matrix display
 	
 	// define parameters
 	defparam status_reg.N = 4;
@@ -94,14 +95,12 @@ module Datapath(cw, k, reset, data_in, clock, Databus, Status, Zero, I, Write, R
 	//Instantiations
 	ALU_rev2 ALU_inst(a, b2, FS, ALU_out, status_ALU);
 	RegisterFile RegisterFile_inst(a, b, R0, R1, R2, R3, R4, R5, R6, R7, Databus, DA, SA, SB, regWrite, reset, clock); // 32x64
-	RAM_det RAM_det_inst(ALU_out[31:0], RAM_det_out);
+	RAM_det RAM_det_inst(address, RAM_det_out);
 	RAM256x64 RAM_inst(ALU_out[7:0], clock, Databus, memWrite2, RAM_out);
 	RegisterNbit status_reg(Status, status_ALU, status_load, reset, clock);
 	ProgramCounter PC_inst(a2, PS, reset, clock, PC, PC4);
 	//rom_case ROM_inst(I, PC); // ROM from class
-	//Muhlbaiers_rom_case ROM_inst1(I, PC[15:0]);
-	rom_case_nice ROM_inst2(I, PC[15:0]);
-
+	Muhlbaiers_rom_case ROM_inst1(I, PC[15:0]);
 	
 	assign RAM_mux_out = RAM_det_out ? RAM_out : data_in;
 	assign Databus = enable[1] ? (enable[0] ? b : PC4) : (enable[0] ? RAM_mux_out : ALU_out);
