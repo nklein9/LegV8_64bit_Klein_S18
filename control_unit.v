@@ -81,8 +81,8 @@ module control_unit(i, z, status, clock, reset, ControlWord, K);
 	// instruction decoder instantiations
 	D D_dec(i, cw_D);
 	I_arith I_arith_dec(i, cw_I_arith);
-	//I_logic I_logic_dec(i, cw_I_logic);
-	RI_Logic RI_Logic_dec(i, cw_RI_Logic);
+	I_logic I_logic_dec(i, cw_I_logic);
+	//RI_Logic RI_Logic_dec(i, cw_RI_Logic);
 	IW IW_dec(i, p_state, cw_IW);
 	R_ALU R_ALU_dec(i, cw_R_ALU);
 	B B_dec(i, cw_B);
@@ -226,7 +226,8 @@ module R_ALU(i, CW);
 	wire [63:0]k;
 	wire state;
 	
-	// assign statements
+	// RI -used assign statements
+	/*
 	assign DA = i[4:0];
 	assign SA = i[9:5];
 	assign SB = i[20:16];
@@ -242,6 +243,26 @@ module R_ALU(i, CW);
 	assign PC_sel = 1'b0;
 	assign B_sel = ~Op[1]; // selects B except when shifting
 	assign status_load = (Op[9] & Op[8]) | (~Op[9] & Op[8] & Op[3]);
+	assign k = {58'b0, i[15:10]};
+	assign state = 1'b0;
+	*/
+	
+	//assign statements no RI
+	assign DA = i[4:0];
+	assign SA = i[9:5];
+	assign SB = i[20:16];
+	assign FS[4] = Op[1] & Op[3];
+	assign FS[3] = (Op[3] & ~Op[1]) | (~Op[3] & Op[9] & ~Op[8]);
+	assign FS[2] = (Op[9] ^ Op[8]) & ~Op[3] | Op[3] & Op[1] & ~Op[0];
+	assign FS[1] = 1'b0;
+	assign FS[0] = Op[9] & Op[3] & ~Op[1];
+	assign PS = 2'b01; // PC <= PC + 4
+	assign enable = 2'b00; // enable ALU_out onto the databus
+	assign regWrite = 1'b1;
+	assign memWrite = 1'b0;
+	assign PC_sel = 1'b0;
+	assign B_sel = ~Op[1]; // selects B except when shifting
+	assign status_load = (Op[9] & Op[8] & ~Op[3]) | (~Op[1] & Op[8] & Op[3]);
 	assign k = {58'b0, i[15:10]};
 	assign state = 1'b0;
 	
